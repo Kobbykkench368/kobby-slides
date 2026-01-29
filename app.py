@@ -3,28 +3,27 @@ import google.generativeai as genai
 from pptx import Presentation
 import io
 
-# 1. Setup API with the latest model
+# 1. Setup API with Error Handling
 try:
-    # This pulls your key from the 'Secrets' we set up
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    # Using 1.5-flash for better speed and stability
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Using 'gemini-pro' as it is the most widely supported standard name
+    model = genai.GenerativeModel('gemini-pro')
 except Exception as e:
-    st.error("Missing API Key! Please add it to your Streamlit Secrets.")
+    st.error("Credential Error: Please check your Streamlit Secrets.")
 
 st.set_page_config(page_title="Kobby's Slide Generator", page_icon="🚀")
 
 st.title("Kobby's Slide Generator 🚀")
-st.write("Professional slides for Business and Logistics students.")
+st.write("Professional tools for Business and Logistics students.")
 
-topic = st.text_input("What is your presentation about?", placeholder="e.g. Supply Chain Management in Ghana")
+topic = st.text_input("What is your presentation about?", placeholder="e.g. Supply Chain in Ghana")
 
 if st.button("Generate PowerPoint"):
     if topic:
-        with st.spinner("AI is thinking..."):
+        with st.spinner("AI is generating your content..."):
             try:
-                # 2. Ask AI for structured content
-                prompt = f"Create a 5-slide outline for {topic}. For each slide, provide a Title and 3 bullet points. Keep it professional."
+                # 2. Ask AI for content
+                prompt = f"Write a professional 5-slide presentation about {topic}. For each slide, provide a Title and 3 bullet points."
                 response = model.generate_content(prompt)
                 
                 # 3. Build the PowerPoint file
@@ -39,23 +38,23 @@ if st.button("Generate PowerPoint"):
                 # Content Slide
                 bullet_slide_layout = prs.slide_layouts[1]
                 slide = prs.slides.add_slide(bullet_slide_layout)
-                slide.shapes.title.text = "Key Points"
+                slide.shapes.title.text = "Presentation Summary"
                 slide.placeholders[1].text = response.text
 
-                # 4. Save to memory for download
+                # 4. Save for download
                 binary_output = io.BytesIO()
                 prs.save(binary_output)
                 
-                st.success("Your presentation is ready!")
+                st.success("Success!")
                 st.download_button(
-                    label="📥 Download .pptx File",
+                    label="📥 Download PowerPoint",
                     data=binary_output.getvalue(),
                     file_name=f"{topic.replace(' ', '_')}.pptx",
                     mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
                 )
             except Exception as e:
-                st.error(f"An error occurred: {e}")
-                st.info("Try refreshing the page or checking your API key.")
+                st.error(f"Technical Error: {e}")
+                st.info("Tip: Double-check that your new API key is correctly pasted in the Secrets tab.")
     else:
         st.warning("Please enter a topic first!")
 
